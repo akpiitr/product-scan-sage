@@ -1,5 +1,8 @@
 {
-  "files": [],
+  "files": [
+    "./src/routes/healthCheck.ts",
+    "./src/services/databaseService.ts"
+  ],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

@@ -185,7 +185,7 @@ export const generateSummary = (
     warnings.push('Contains silicones which may cause breakouts for acne-prone skin');
   }
   
-  // Mock match score for personalization (in real app would use user profile)
+  // Match score for personalization (in real app would use user profile)
   const matchScore = Math.round(Math.random() * 30 + 70); // Random score between 70-100
   
   return {

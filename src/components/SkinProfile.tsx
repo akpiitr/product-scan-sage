@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useProducts, SkinType } from '@/context/ProductContext';
 import { Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const skinTypes: { value: SkinType; label: string; description: string }[] = [
   { 
@@ -42,6 +43,7 @@ const commonAllergies = [
 ];
 
 const SkinProfile: React.FC = () => {
+  const navigate = useNavigate();
   const { skinProfile, setSkinProfile } = useProducts();
   
   const [selectedType, setSelectedType] = useState<SkinType>(
@@ -82,6 +84,9 @@ const SkinProfile: React.FC = () => {
       concerns: selectedConcerns,
       allergies: selectedAllergies
     });
+    
+    // Redirect to home page after saving
+    navigate('/');
   };
   
   return (

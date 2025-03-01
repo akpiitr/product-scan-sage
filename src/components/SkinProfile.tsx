@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useProducts, SkinType } from '@/context/ProductContext';
 import { Check } from 'lucide-react';
@@ -78,7 +77,7 @@ const SkinProfile: React.FC = () => {
     );
   };
   
-  const saveProfile = () => {
+  const handleSave = () => {
     setSkinProfile({
       type: selectedType,
       concerns: selectedConcerns,
@@ -86,7 +85,7 @@ const SkinProfile: React.FC = () => {
     });
     
     // Redirect to home page after saving
-    navigate('/');
+    navigate('/home');
   };
   
   return (
@@ -168,7 +167,7 @@ const SkinProfile: React.FC = () => {
       
       <div className="pt-4">
         <button
-          onClick={saveProfile}
+          onClick={handleSave}
           className="w-full bg-brand-accent text-white font-medium py-3 rounded-lg hover:bg-opacity-90 transition-all"
         >
           Save Profile

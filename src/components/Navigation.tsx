@@ -12,8 +12,8 @@ const Navigation: React.FC = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-effect border-t border-gray-200 dark:border-gray-800">
       <div className="flex items-center justify-around h-16 px-6 max-w-md mx-auto">
         <NavLink 
-          to="/" 
-          className={`flex flex-col items-center justify-center ${isActive('/') ? 'text-brand-accent' : 'text-gray-600 dark:text-gray-400'}`}
+          to="/home" 
+          className={`flex flex-col items-center justify-center ${isActive('/home') ? 'text-brand-accent' : 'text-gray-600 dark:text-gray-400'}`}
         >
           <Home size={24} strokeWidth={1.5} />
           <span className="text-xs mt-1 font-medium">Home</span>

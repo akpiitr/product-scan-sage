@@ -13,7 +13,7 @@ const Profile = () => {
   
   // Mock account data - in a real app, this would come from your auth/user context
   const [accountData, setAccountData] = useState({
-    name: 'Alex Johnson',
+    name: 'John Snow',
     email: 'alex@example.com',
     age: '28',
     gender: 'Female',

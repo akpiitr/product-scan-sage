@@ -59,7 +59,7 @@ const ingredientDatabase: Record<string, {
   },
   'Ceramide EOP': {
     effect: 'good',
-    description: 'Helps fortify the skin's natural barrier.',
+    description: "Helps fortify the skin's natural barrier.",
     goodFor: ['dry', 'normal', 'sensitive'],
   },
   'Cholesterol': {

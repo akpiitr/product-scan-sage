@@ -52,9 +52,9 @@ const mockIngredients: Record<string, string[]> = {
 export const scanBarcode = async (barcode: string): Promise<Product | null> => {
   try {
     // First try to fetch product from API
-    const product = await fetchProductByBarcode(barcode);
-    if (product) {
-      return product;
+    const apiProduct = await fetchProductByBarcode(barcode);
+    if (apiProduct) {
+      return apiProduct;
     }
     
     console.log('Product not found in API, falling back to mock database');
@@ -80,7 +80,7 @@ export const scanBarcode = async (barcode: string): Promise<Product | null> => {
     const summary = generateSummary(ingredientAnalysis, ingredients);
 
     // Create full product with analysis
-    const product: Product = {
+    const mockProduct: Product = {
       ...productInfo,
       analysis: {
         overallRating: summary.overallRating,
@@ -95,7 +95,7 @@ export const scanBarcode = async (barcode: string): Promise<Product | null> => {
       favorite: false
     };
 
-    return product;
+    return mockProduct;
   } catch (error) {
     console.error('Error in scanBarcode:', error);
     throw new Error('Failed to scan barcode');

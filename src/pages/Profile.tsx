@@ -6,9 +6,7 @@ import { useProducts } from '@/context/ProductContext';
 import Navigation from '@/components/Navigation';
 import SkinProfile from '@/components/SkinProfile';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { Settings, LogOut } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -19,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -106,6 +105,10 @@ const Profile = () => {
       toast.success('Profile updated successfully');
     }
   };
+
+  // Calculate date limits
+  const pastDate = new Date('1900-01-01');
+  const today = new Date();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -215,8 +218,8 @@ const Profile = () => {
                           selected={profileData.dob}
                           onSelect={(date) => date && handleProfileChange('dob', date)}
                           disabled={(date) => 
-                            date > new Date() || 
-                            date < new Date('1900-01-01')
+                            date > today || 
+                            date < pastDate
                           }
                           initialFocus
                         />

@@ -13,6 +13,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
+import { saveUserProfile } from '@/services/databaseService';
 
 interface ProfileData {
   name: string;
@@ -27,6 +28,8 @@ interface EditProfileDialogProps {
   initialProfileData: ProfileData;
   currentUserEmail: string | null | undefined;
   currentUserName: string | null | undefined;
+  userId: string | null | undefined;
+  onProfileSaved?: () => void;
 }
 
 const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
@@ -34,12 +37,15 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
   onOpenChange,
   initialProfileData,
   currentUserEmail,
-  currentUserName
+  currentUserName,
+  userId,
+  onProfileSaved
 }) => {
   const [profileData, setProfileData] = useState<ProfileData>({
     ...initialProfileData
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Format date object to MM/DD/YYYY string
   function formatDateToString(date: Date): string {
@@ -147,12 +153,33 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSaveProfile = () => {
-    if (validateProfileData()) {
-      // Here we would update the user's profile in the backend
-      // For now, we'll just close the dialog and show a success message
-      onOpenChange(false);
-      toast.success('Profile updated successfully');
+  const handleSaveProfile = async () => {
+    if (validateProfileData() && userId) {
+      try {
+        setIsSubmitting(true);
+        
+        // Save the profile data to Firestore
+        await saveUserProfile(userId, {
+          name: profileData.name,
+          dob: profileData.dob,
+          age: profileData.age,
+          email: profileData.email,
+          createdAt: new Date().toISOString()
+        });
+        
+        onOpenChange(false);
+        toast.success('Profile updated successfully');
+        
+        // Call the callback if provided
+        if (onProfileSaved) {
+          onProfileSaved();
+        }
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        toast.error('Failed to update profile. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
   
@@ -239,10 +266,12 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSaveProfile}>Save Changes</Button>
+          <Button onClick={handleSaveProfile} disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

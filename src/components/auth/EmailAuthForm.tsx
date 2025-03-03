@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Apple } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -92,7 +92,9 @@ export const EmailAuthForm: React.FC<EmailAuthFormProps> = ({
             }
           }}
         >
-          <Apple className="mr-2 h-5 w-5" />
+          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.05 12.536c0.031 3.012 2.67 4.023 2.698 4.033-0.022 0.072-0.433 1.462-1.431 2.894-0.862 1.244-1.758 2.485-3.166 2.506-1.383 0.023-1.828-0.813-3.411-0.813-1.582 0-2.076 0.786-3.386 0.836-1.358 0.052-2.394-1.348-3.263-2.588-1.774-2.532-3.131-7.155-1.309-10.282 0.9-1.553 2.516-2.536 4.263-2.562 1.33-0.024 2.582 0.886 3.393 0.886 0.81 0 2.333-1.095 3.936-0.935 0.67 0.027 2.552 0.267 3.761 2.018-0.097 0.06-2.248 1.29-2.224 3.851M14.345 3.761c0.716-0.855 1.198-2.043 1.066-3.23-1.031 0.042-2.278 0.677-3.016 1.532-0.662 0.753-1.242 1.961-1.087 3.115 1.151 0.088 2.325-0.57 3.037-1.417" fill="black"/>
+          </svg>
           Continue with Apple
         </Button>
       </div>

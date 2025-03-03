@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type SkinType = 'normal' | 'dry' | 'oily' | 'combination' | 'sensitive';

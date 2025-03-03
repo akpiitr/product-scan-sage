@@ -1,24 +1,41 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SkinProfile from '@/components/SkinProfile';
 import Navigation from '@/components/Navigation';
 import { ArrowLeft, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { addDocument, getDocuments, updateDocument } from '@/services/databaseService';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'account' | 'skin'>('account');
   
-  // Mock account data - in a real app, this would come from your auth/user context
-  const [accountData, setAccountData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    age: '28',
-    gender: 'Female',
-    password: '••••••••',
+  const [accountData, setAccountData] = useState(() => {
+    const storedAccountData = localStorage.getItem('accountData');
+    return storedAccountData ? JSON.parse(storedAccountData) : {
+      name: 'Alex Johnson',
+      email: 'alex@example.com',
+      age: '28',
+      gender: 'Female',
+      password: '••••••••',
+    };
   });
+
+  useEffect(() => {
+    const fetchAccountData = async () => {
+      try {
+        const documents = await getDocuments('users', [['email', '==', accountData.email]]);
+        if (documents.length > 0) {
+          setAccountData(documents[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching account data:', error);
+      }
+    };
+
+    fetchAccountData();
+  }, [accountData.email]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,9 +50,24 @@ const Profile = () => {
     alert('Password reset link sent to your email!');
   };
 
-  const handleSaveAccount = () => {
-    // In a real app, this would save account details to your backend
-    alert('Account details saved successfully!');
+  const handleSaveAccount = async () => {
+    try {
+      // Save account details to localStorage
+      localStorage.setItem('accountData', JSON.stringify(accountData));
+      
+      // Save account details to the database
+      const documents = await getDocuments('users', [['email', '==', accountData.email]]);
+      if (documents.length > 0) {
+        await updateDocument('users', documents[0].id, accountData);
+      } else {
+        await addDocument('users', accountData);
+      }
+      
+      alert('Account details saved successfully!');
+    } catch (error) {
+      console.error('Error saving account details:', error);
+      alert('Failed to save account details. Please try again.');
+    }
   };
   
   return (

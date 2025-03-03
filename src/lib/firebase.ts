@@ -1,6 +1,6 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // Add this line
 
 // Firebase configuration
 const firebaseConfig = {
@@ -16,6 +16,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// Initialize Firestore
+export const db = getFirestore(app); // Add this line
 
 // Demo-mode check
 export const isInDemoMode = !import.meta.env.VITE_FIREBASE_API_KEY || 

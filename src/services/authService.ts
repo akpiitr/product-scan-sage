@@ -12,6 +12,7 @@ import {
 import { auth, googleProvider, isInDemoMode } from "../lib/firebase";
 import { toast } from "sonner";
 import { createMockUser } from "../utils/mockAuth";
+import { addDocument } from "./databaseService"; // Ensure this import is present
 
 // Keep track of recaptcha instance to avoid duplicate rendering
 let recaptchaVerifier: RecaptchaVerifier | null = null;
@@ -38,7 +39,9 @@ export const emailSignUp = async (email: string, password: string): Promise<void
   }
 
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    await addDocument("users", { uid: user.uid, email: user.email }); // Ensure this line is present
     toast.success("Account created successfully!");
   } catch (error: any) {
     toast.error(error.message || "Failed to create account");

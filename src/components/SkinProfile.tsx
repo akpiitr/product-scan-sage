@@ -84,6 +84,13 @@ const SkinProfile: React.FC = () => {
       allergies: selectedAllergies
     });
     
+    // Save skin profile to localStorage
+    localStorage.setItem('skinProfile', JSON.stringify({
+      type: selectedType,
+      concerns: selectedConcerns,
+      allergies: selectedAllergies
+    }));
+
     // Redirect to home page after saving
     navigate('/home');
   };

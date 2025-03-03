@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProducts } from '@/context/ProductContext';
 import { SkinType } from '@/models/product';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 const skinTypes: { value: SkinType; label: string; description: string }[] = [
   { 
@@ -45,7 +46,8 @@ const commonAllergies = [
 
 const SkinProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { skinProfile, setSkinProfile } = useProducts();
+  const { toast } = useToast();
+  const { skinProfile, setSkinProfile, isLoading } = useProducts();
   
   const [selectedType, setSelectedType] = useState<SkinType>(
     skinProfile?.type || 'normal'
@@ -58,6 +60,15 @@ const SkinProfile: React.FC = () => {
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>(
     skinProfile?.allergies || []
   );
+  
+  // Update local state when skin profile is loaded from database
+  useEffect(() => {
+    if (skinProfile) {
+      setSelectedType(skinProfile.type);
+      setSelectedConcerns(skinProfile.concerns);
+      setSelectedAllergies(skinProfile.allergies);
+    }
+  }, [skinProfile]);
   
   const handleSkinTypeChange = (type: SkinType) => {
     setSelectedType(type);
@@ -80,15 +91,32 @@ const SkinProfile: React.FC = () => {
   };
   
   const handleSave = () => {
-    setSkinProfile({
+    const updatedProfile = {
       type: selectedType,
       concerns: selectedConcerns,
       allergies: selectedAllergies
+    };
+    
+    console.log('Saving skin profile:', updatedProfile);
+    setSkinProfile(updatedProfile);
+    
+    toast({
+      title: "Profile Saved",
+      description: "Your skin profile has been updated successfully.",
     });
     
     // Redirect to home page after saving
     navigate('/home');
   };
+  
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-accent" />
+        <p className="text-gray-500">Loading your skin profile...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6 animate-fade-in">

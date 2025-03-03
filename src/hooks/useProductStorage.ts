@@ -24,6 +24,19 @@ export const useProductStorage = (userId: string | null) => {
       try {
         // If user is authenticated, load from Firestore
         if (userId) {
+          console.log(`Loading data for user ${userId}`);
+          
+          // Load skin profile
+          const userSkinProfile = await getSkinProfile(userId);
+          if (userSkinProfile) {
+            console.log('Loaded skin profile:', userSkinProfile);
+            setSkinProfile(userSkinProfile);
+          } else {
+            console.log('No saved skin profile found, using default');
+            // If no skin profile exists in the database, use the default
+            setSkinProfile(defaultSkinProfile);
+          }
+          
           // Load products
           const userProductsData = await getUserProducts(userId);
           if (userProductsData) {
@@ -33,12 +46,7 @@ export const useProductStorage = (userId: string | null) => {
               dateScanned: new Date(product.dateScanned)
             }));
             setProducts(productsWithDates);
-          }
-          
-          // Load skin profile
-          const userSkinProfile = await getSkinProfile(userId);
-          if (userSkinProfile) {
-            setSkinProfile(userSkinProfile);
+            console.log(`Loaded ${productsWithDates.length} products from database`);
           }
         }
         // If user is not authenticated or in demo mode, load from localStorage
@@ -63,6 +71,7 @@ export const useProductStorage = (userId: string | null) => {
           if (storedProfile) {
             try {
               setSkinProfile(JSON.parse(storedProfile));
+              console.log('Loaded skin profile from localStorage');
             } catch (error) {
               console.error('Failed to parse stored skin profile:', error);
             }
@@ -83,7 +92,34 @@ export const useProductStorage = (userId: string | null) => {
     loadData();
   }, [userId, toast]);
 
-  // Save to Firestore when data changes and user is authenticated
+  // Save to Firestore when skin profile changes and user is authenticated
+  useEffect(() => {
+    const saveToDatabase = async () => {
+      if (userId && !isLoading) {
+        try {
+          console.log('Saving skin profile to database:', skinProfile);
+          await saveSkinProfile(userId, skinProfile);
+          toast({
+            title: "Success",
+            description: "Your skin profile has been saved.",
+          });
+        } catch (error) {
+          console.error('Failed to save skin profile to database:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save your skin profile. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    
+    if (!isInDemoMode && userId) {
+      saveToDatabase();
+    }
+  }, [skinProfile, userId, isLoading, toast]);
+
+  // Save to Firestore when products change and user is authenticated
   useEffect(() => {
     const saveToDatabase = async () => {
       if (userId && !isLoading && products.length > 0) {
@@ -95,27 +131,10 @@ export const useProductStorage = (userId: string | null) => {
       }
     };
     
-    if (!isInDemoMode) {
+    if (!isInDemoMode && userId) {
       saveToDatabase();
     }
   }, [products, userId, isLoading]);
-
-  // Save skin profile to Firestore when it changes and user is authenticated
-  useEffect(() => {
-    const saveToDatabase = async () => {
-      if (userId && !isLoading) {
-        try {
-          await saveSkinProfile(userId, skinProfile);
-        } catch (error) {
-          console.error('Failed to save skin profile to database:', error);
-        }
-      }
-    };
-    
-    if (!isInDemoMode) {
-      saveToDatabase();
-    }
-  }, [skinProfile, userId, isLoading]);
 
   // Always save to localStorage as a backup
   useEffect(() => {

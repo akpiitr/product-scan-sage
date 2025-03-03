@@ -38,10 +38,10 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <div className="max-w-md mx-auto px-4">
+      <div className="max-w-lg mx-auto px-4">
         {/* Header */}
         <header className="pt-10 pb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Profile</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             Manage your account and preferences
           </p>
@@ -65,7 +65,10 @@ const Profile = () => {
           />
           
           {/* Skin Profile Section */}
-          <SkinProfile />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Skin Profile</h2>
+            <SkinProfile />
+          </div>
           
           {/* Logout Button */}
           <LogoutButton onLogout={handleLogout} />

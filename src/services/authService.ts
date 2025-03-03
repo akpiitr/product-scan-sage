@@ -1,4 +1,3 @@
-
 import { 
   User, 
   signInWithEmailAndPassword, 
@@ -12,6 +11,9 @@ import {
 import { auth, googleProvider, isInDemoMode } from "../lib/firebase";
 import { toast } from "sonner";
 import { createMockUser } from "../utils/mockAuth";
+
+// Keep track of recaptcha instance to avoid duplicate rendering
+let recaptchaVerifier: RecaptchaVerifier | null = null;
 
 export const emailSignIn = async (email: string, password: string): Promise<void> => {
   if (isInDemoMode) {
@@ -77,21 +79,49 @@ export const sendOtp = async (
   }
 
   try {
-    const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    // Clear previous recaptcha to avoid errors
+    if (recaptchaVerifier) {
+      recaptchaVerifier.clear();
+      recaptchaVerifier = null;
+    }
+
+    // Clean up any existing recaptcha containers
+    const oldContainer = document.getElementById('recaptcha-container');
+    if (oldContainer) {
+      oldContainer.innerHTML = '';
+    }
+    
+    // Create a fresh recaptcha verifier instance
+    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
       size: 'invisible',
     });
     
-    const provider = new PhoneAuthProvider(auth);
-    const verificationId = await provider.verifyPhoneNumber(
+    // Ensure phone number has proper format
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = `+${phoneNumber}`;
+    }
+    
+    console.log('Sending OTP to:', phoneNumber);
+    
+    const confirmationResult = await signInWithPhoneNumber(
+      auth, 
       phoneNumber, 
       recaptchaVerifier
     );
     
-    setVerificationId(verificationId);
+    setVerificationId(confirmationResult.verificationId);
     setPhoneNumber(phoneNumber);
     toast.success(`OTP sent to ${phoneNumber}`);
   } catch (error: any) {
+    console.error("Failed to send OTP", error);
     toast.error(error.message || "Failed to send OTP");
+    
+    // Clean up on error
+    if (recaptchaVerifier) {
+      recaptchaVerifier.clear();
+      recaptchaVerifier = null;
+    }
+    
     throw error;
   }
 };
@@ -113,10 +143,14 @@ export const verifyOtp = async (
 
   try {
     const credential = PhoneAuthProvider.credential(verificationId, otp);
-    await signInWithPhoneNumber(auth, phoneNumber || "", new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-    }));
+    await auth.signInWithCredential(credential);
     toast.success("Phone verification successful!");
+    
+    // Clear the recaptcha after successful verification
+    if (recaptchaVerifier) {
+      recaptchaVerifier.clear();
+      recaptchaVerifier = null;
+    }
   } catch (error: any) {
     toast.error(error.message || "Failed to verify OTP");
     throw error;

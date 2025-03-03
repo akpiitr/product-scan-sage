@@ -5,7 +5,6 @@ import {
   signOut as firebaseSignOut,
   signInWithPopup,
   signInWithPhoneNumber,
-  signInWithCredential,
   PhoneAuthProvider,
   RecaptchaVerifier
 } from "firebase/auth";
@@ -144,12 +143,8 @@ export const verifyOtp = async (
 
   try {
     const credential = PhoneAuthProvider.credential(verificationId, otp);
-    const userCredential = await signInWithCredential(auth, credential);
-    
+    await signInWithPopup(auth, credential as any);
     toast.success("Phone verification successful!");
-    console.log("User signed in:", userCredential.user);
-    //await auth.signInWithCredential(credential);
-    //toast.success("Phone verification successful!");
     
     // Clear the recaptcha after successful verification
     if (recaptchaVerifier) {
@@ -165,7 +160,7 @@ export const verifyOtp = async (
 export const signOutUser = async (): Promise<void> => {
   if (isInDemoMode) {
     toast.success("Signed out successfully!");
-    return null;
+    return;
   }
 
   try {

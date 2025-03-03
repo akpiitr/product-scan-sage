@@ -12,11 +12,11 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ onLogout }) => {
     <div className="mt-8">
       <Button 
         variant="outline" 
-        className="w-full flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-900 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+        className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-600 border-red-200 hover:border-red-300 hover:bg-red-50"
         onClick={onLogout}
       >
-        <LogOut size={16} />
-        <span className="font-medium">Sign Out</span>
+        <LogOut size={18} />
+        Logout
       </Button>
     </div>
   );

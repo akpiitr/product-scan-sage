@@ -77,22 +77,33 @@ const Profile = () => {
           
           {/* Settings Panel (conditionally rendered) */}
           {showSettings && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Settings</CardTitle>
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm animate-scale-in">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-medium">Settings</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-0">
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Account Settings</h3>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    Edit Profile
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    Notification Preferences
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    Privacy Settings
-                  </Button>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Settings</h3>
+                  <div className="grid gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Edit Profile
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Notification Preferences
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Privacy Settings
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

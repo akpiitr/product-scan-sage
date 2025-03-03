@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Apple, Mail, Phone, ArrowRight } from 'lucide-react';
+import { Apple, Mail, Phone, ArrowRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Landing = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   
   const { 
     currentUser, 
@@ -35,16 +37,19 @@ const Landing = () => {
   }, [currentUser, navigate]);
 
   const handleGoogleLogin = async () => {
+    setAuthError(null);
     try {
       await signInWithGoogle();
       navigate('/home');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign in failed", error);
+      // Error will be handled by the toast in AuthContext
     }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     try {
       if (isSignUp) {
         await signUpWithEmail(email, password);
@@ -52,30 +57,35 @@ const Landing = () => {
         await signInWithEmail(email, password);
       }
       navigate('/home');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Email authentication failed", error);
+      setAuthError(error.message);
     }
   };
 
   const handleSendOtp = async () => {
+    setAuthError(null);
     if (phoneNumber.length >= 10) {
       try {
         await sendPhoneOtp(phoneNumber);
         setShowOtpInput(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to send OTP", error);
+        setAuthError(error.message);
       }
     }
   };
 
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     if (otp.length === 6) {
       try {
         await verifyPhoneOtp(otp);
         navigate('/home');
-      } catch (error) {
+      } catch (error: any) {
         console.error("OTP verification failed", error);
+        setAuthError(error.message);
       }
     }
   };
@@ -103,6 +113,13 @@ const Landing = () => {
         </div>
 
         <DemoBanner />
+
+        {authError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{authError}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Login Options */}
         <Card className="border-none shadow-lg">

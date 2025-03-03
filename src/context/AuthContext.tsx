@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   User, 
@@ -41,7 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [phoneNumberForVerification, setPhoneNumberForVerification] = useState<string | null>(null);
   
-  // Mock auth for demo mode
   const mockAuth = () => {
     if (isInDemoMode) {
       setCurrentUser({
@@ -74,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Listen for auth state changes
   useEffect(() => {
     if (isInDemoMode) {
       mockAuth();
@@ -90,7 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  // Email sign in
   const signInWithEmail = async (email: string, password: string) => {
     if (isInDemoMode) {
       toast.success("Demo login successful!");
@@ -110,7 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Email sign up
   const signUpWithEmail = async (email: string, password: string) => {
     if (isInDemoMode) {
       toast.success("Demo signup successful!");
@@ -130,7 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Google sign in
   const signInWithGoogle = async () => {
     if (isInDemoMode) {
       toast.success("Demo Google login successful!");
@@ -143,14 +137,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signInWithPopup(auth, googleProvider);
       toast.success("Google sign in successful!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google");
+      if (error.code === "auth/unauthorized-domain") {
+        toast.error(
+          "This domain is not authorized in Firebase. Please add it in the Firebase console under Authentication > Sign-in method > Authorized domains."
+        );
+        console.error("Unauthorized domain. Add this domain to your Firebase project:", window.location.hostname);
+      } else {
+        toast.error(error.message || "Failed to sign in with Google");
+      }
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  // Send phone OTP
   const sendPhoneOtp = async (phoneNumber: string) => {
     if (isInDemoMode) {
       toast.success(`OTP sent to ${phoneNumber}`);
@@ -181,7 +181,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Verify phone OTP
   const verifyPhoneOtp = async (otp: string) => {
     if (isInDemoMode) {
       toast.success("Phone verification successful!");
@@ -209,7 +208,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sign out
   const signOut = async () => {
     if (isInDemoMode) {
       setCurrentUser(null);

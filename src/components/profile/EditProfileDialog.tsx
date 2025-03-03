@@ -1,12 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import { 
   Dialog, 
@@ -19,7 +16,7 @@ import {
 
 interface ProfileData {
   name: string;
-  dob: Date;
+  dob: string;
   age: string;
   email: string;
 }
@@ -39,37 +36,92 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
   currentUserEmail,
   currentUserName
 }) => {
-  const [profileData, setProfileData] = useState<ProfileData>(initialProfileData);
+  const [profileData, setProfileData] = useState<ProfileData>({
+    ...initialProfileData,
+    dob: initialProfileData.dob instanceof Date 
+      ? formatDateToString(initialProfileData.dob) 
+      : ''
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [calendarOpen, setCalendarOpen] = useState(false);
   
-  // Ensure profileData.dob is a valid Date object
-  useEffect(() => {
-    if (!(profileData.dob instanceof Date) || isNaN(profileData.dob.getTime())) {
-      setProfileData(prev => ({...prev, dob: new Date()}));
+  // Format date object to MM/DD/YYYY string
+  function formatDateToString(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  }
+  
+  // Parse MM/DD/YYYY string to Date object
+  function parseDateString(dateString: string): Date | null {
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return null;
+    
+    const month = parseInt(parts[0], 10) - 1; // Months are 0-indexed in JS Date
+    const day = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    
+    if (isNaN(month) || isNaN(day) || isNaN(year)) return null;
+    
+    const date = new Date(year, month, day);
+    
+    // Validate date (handles invalid dates like 02/31/2023)
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month ||
+      date.getDate() !== day
+    ) {
+      return null;
     }
-  }, [profileData.dob]);
+    
+    return date;
+  }
+  
+  // Calculate age from date of birth
+  function calculateAge(dob: Date): number {
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
   
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
   
-  const handleProfileChange = (field: string, value: string | Date) => {
+  const validateDob = (dobString: string): boolean => {
+    const dobDate = parseDateString(dobString);
+    if (!dobDate) return false;
+    
+    // Validate date range (e.g., not in the future, not too far in the past)
+    const today = new Date();
+    const pastDate = new Date('1900-01-01');
+    
+    return dobDate <= today && dobDate >= pastDate;
+  };
+  
+  const handleProfileChange = (field: string, value: string) => {
     // Clear the error for this field
     if (errors[field]) {
       setErrors(prev => ({...prev, [field]: ''}));
     }
     
-    if (field === 'dob' && value instanceof Date) {
-      // Calculate age automatically
-      const today = new Date();
-      let age = today.getFullYear() - value.getFullYear();
-      const monthDiff = today.getMonth() - value.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < value.getDate())) {
-        age--;
+    if (field === 'dob') {
+      // Update DOB and calculate age if valid date format
+      setProfileData(prev => ({...prev, dob: value}));
+      
+      // Try to parse the date and calculate age
+      const dobDate = parseDateString(value);
+      if (dobDate) {
+        const age = calculateAge(dobDate);
+        setProfileData(prev => ({...prev, dob: value, age: String(age)}));
       }
-      setProfileData(prev => ({...prev, dob: value, age: String(age)}));
     } else {
       setProfileData(prev => ({...prev, [field]: value}));
     }
@@ -88,8 +140,10 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
       newErrors.email = 'Please enter a valid email';
     }
     
-    if (!profileData.dob) {
+    if (!profileData.dob.trim()) {
       newErrors.dob = 'Date of birth is required';
+    } else if (!validateDob(profileData.dob)) {
+      newErrors.dob = 'Please enter a valid date in MM/DD/YYYY format';
     }
     
     setErrors(newErrors);
@@ -104,10 +158,6 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
       toast.success('Profile updated successfully');
     }
   };
-
-  // Calculate date limits
-  const pastDate = new Date('1900-01-01');
-  const today = new Date();
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,45 +192,17 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
               Date of Birth
             </Label>
             <div className="col-span-3">
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="dob"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      errors.dob ? "border-red-500" : "",
-                      !profileData.dob && "text-muted-foreground"
-                    )}
-                  >
-                    {profileData.dob instanceof Date && !isNaN(profileData.dob.getTime()) ? (
-                      format(profileData.dob, "PPP")
-                    ) : (
-                      <span>Select date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={profileData.dob}
-                    onSelect={(date) => {
-                      if (date) {
-                        handleProfileChange('dob', date);
-                        setCalendarOpen(false);
-                      }
-                    }}
-                    disabled={(date) => 
-                      date > today || 
-                      date < pastDate
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                id="dob"
+                placeholder="MM/DD/YYYY"
+                value={profileData.dob}
+                onChange={(e) => handleProfileChange('dob', e.target.value)}
+                className={errors.dob ? "border-red-500" : ""}
+              />
               {errors.dob && (
                 <p className="text-red-500 text-xs mt-1">{errors.dob}</p>
               )}
+              <p className="text-xs text-gray-500 mt-1">Enter date in MM/DD/YYYY format</p>
             </div>
           </div>
           

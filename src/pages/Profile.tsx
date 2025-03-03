@@ -16,9 +16,19 @@ const Profile = () => {
   
   // Profile edit state
   const [showEditProfile, setShowEditProfile] = useState(false);
+  
+  // Format current date as MM/DD/YYYY
+  const formatCurrentDate = () => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const year = today.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+  
   const initialProfileData = {
     name: currentUser?.displayName || '',
-    dob: new Date(),
+    dob: formatCurrentDate(),
     age: '',
     email: currentUser?.email || ''
   };

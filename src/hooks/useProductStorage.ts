@@ -21,16 +21,17 @@ export const useProductStorage = (userId: string | null) => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      setIsInitialized(false); // Reset initialization flag when user changes
       
       try {
         // If user is authenticated, load from Firestore
         if (userId) {
-          console.log(`Loading data for user ${userId}`);
+          console.log(`Loading data for user ${userId} from Firestore`);
           
           // Load skin profile
           const userSkinProfile = await getSkinProfile(userId);
           if (userSkinProfile) {
-            console.log('Loaded skin profile from database:', userSkinProfile);
+            console.log('SUCCESSFULLY loaded skin profile from database:', userSkinProfile);
             setSkinProfile(userSkinProfile);
           } else {
             console.log('No saved skin profile found in database, using default');
@@ -52,6 +53,7 @@ export const useProductStorage = (userId: string | null) => {
         }
         // If user is not authenticated or in demo mode, load from localStorage
         else {
+          console.log('No user ID provided, loading from localStorage');
           const storedProducts = localStorage.getItem('products');
           const storedProfile = localStorage.getItem('skinProfile');
           
@@ -79,8 +81,6 @@ export const useProductStorage = (userId: string | null) => {
             }
           }
         }
-        
-        setIsInitialized(true);
       } catch (error) {
         console.error('Error loading user data:', error);
         toast({
@@ -90,11 +90,13 @@ export const useProductStorage = (userId: string | null) => {
         });
       } finally {
         setIsLoading(false);
+        setIsInitialized(true); // Mark as initialized after loading completes (success or failure)
+        console.log('Data loading completed, isInitialized set to true');
       }
     };
     
     loadData();
-  }, [userId, toast]);
+  }, [userId, toast]); // Only react to userId changes
 
   // Save to Firestore when skin profile changes and user is authenticated
   useEffect(() => {

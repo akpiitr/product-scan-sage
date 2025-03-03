@@ -50,25 +50,17 @@ const SkinProfile: React.FC = () => {
   const { skinProfile, setSkinProfile, isLoading } = useProducts();
   
   // Local state to track selected values
-  const [selectedType, setSelectedType] = useState<SkinType>(
-    skinProfile?.type || 'normal'
-  );
-  
-  const [selectedConcerns, setSelectedConcerns] = useState<string[]>(
-    skinProfile?.concerns || []
-  );
-  
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>(
-    skinProfile?.allergies || []
-  );
+  const [selectedType, setSelectedType] = useState<SkinType>('normal');
+  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
+  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
   
   // Update local state when skin profile is loaded from database
   useEffect(() => {
     if (skinProfile) {
       console.log('Updating UI with skin profile:', skinProfile);
-      setSelectedType(skinProfile.type);
-      setSelectedConcerns(skinProfile.concerns);
-      setSelectedAllergies(skinProfile.allergies);
+      setSelectedType(skinProfile.type || 'normal');
+      setSelectedConcerns(skinProfile.concerns || []);
+      setSelectedAllergies(skinProfile.allergies || []);
     }
   }, [skinProfile]);
   

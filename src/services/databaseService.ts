@@ -41,8 +41,10 @@ export const addDocument = async <T extends DocumentData>(
   }
 
   try {
+    console.log(`Adding document to ${collectionName} with ID ${documentId}:`, data);
     const docRef = doc(db, collectionName, documentId);
     await setDoc(docRef, data);
+    console.log(`Successfully added document to ${collectionName} with ID ${documentId}`);
   } catch (error: any) {
     console.error(`Error adding document to ${collectionName}:`, error);
     toast.error(error.message || `Failed to save to ${collectionName}`);
@@ -62,12 +64,16 @@ export const getDocument = async <T>(
   }
 
   try {
+    console.log(`Getting document from ${collectionName} with ID ${documentId}`);
     const docRef = doc(db, collectionName, documentId);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as T;
+      const data = { id: docSnap.id, ...docSnap.data() } as T;
+      console.log(`Successfully retrieved document from ${collectionName}:`, data);
+      return data;
     } else {
+      console.log(`No document found in ${collectionName} with ID ${documentId}`);
       return null;
     }
   } catch (error: any) {

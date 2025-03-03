@@ -28,7 +28,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const { currentUser, signOut } = useAuth();
   const { skinProfile } = useProducts();
-  const [showSettings, setShowSettings] = useState(false);
   
   // Profile edit state
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -49,18 +48,13 @@ const Profile = () => {
     }
   };
 
-  const handleSettingsClick = () => {
-    setShowSettings(!showSettings);
-    toast.success("Settings panel toggled");
+  const handleEditProfileClick = () => {
+    setShowEditProfile(true);
   };
   
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-  
-  const handleEditProfileClick = () => {
-    setShowEditProfile(true);
   };
   
   const handleProfileChange = (field: string, value: string | Date) => {
@@ -152,35 +146,17 @@ const Profile = () => {
                 </p>
               </div>
               
-              <Button variant="outline" size="icon" onClick={handleSettingsClick}>
-                <Settings size={18} />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2 rounded-full px-4 py-1 font-medium text-sm text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={handleEditProfileClick}
+              >
+                <Settings size={16} className="text-gray-600 dark:text-gray-400" />
+                <span>Edit Profile</span>
               </Button>
             </div>
           </div>
-          
-          {/* Settings Panel (conditionally rendered) */}
-          {showSettings && (
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm animate-scale-in">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium">Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Settings</h3>
-                  <div className="grid gap-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
-                      onClick={handleEditProfileClick}
-                    >
-                      <User size={16} className="mr-2" />
-                      Edit Profile
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
           
           {/* Edit Profile Dialog */}
           <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>

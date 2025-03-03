@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuthContext';
 import { useProducts } from '@/context/ProductContext';
 import Navigation from '@/components/Navigation';
-import { SkinProfile } from '@/components/SkinProfile';
+import SkinProfile from '@/components/SkinProfile';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut } from 'lucide-react';
 

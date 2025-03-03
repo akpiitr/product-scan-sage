@@ -49,6 +49,7 @@ const SkinProfile: React.FC = () => {
   const { toast } = useToast();
   const { skinProfile, setSkinProfile, isLoading } = useProducts();
   
+  // Local state to track selected values
   const [selectedType, setSelectedType] = useState<SkinType>(
     skinProfile?.type || 'normal'
   );
@@ -64,6 +65,7 @@ const SkinProfile: React.FC = () => {
   // Update local state when skin profile is loaded from database
   useEffect(() => {
     if (skinProfile) {
+      console.log('Updating UI with skin profile:', skinProfile);
       setSelectedType(skinProfile.type);
       setSelectedConcerns(skinProfile.concerns);
       setSelectedAllergies(skinProfile.allergies);
@@ -97,7 +99,7 @@ const SkinProfile: React.FC = () => {
       allergies: selectedAllergies
     };
     
-    console.log('Saving skin profile:', updatedProfile);
+    console.log('Saving updated skin profile:', updatedProfile);
     setSkinProfile(updatedProfile);
     
     toast({

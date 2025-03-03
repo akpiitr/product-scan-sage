@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
-import { useProducts, SkinType } from '@/context/ProductContext';
+import { useProducts } from '@/context/ProductContext';
+import { SkinType } from '@/models/product';
 import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

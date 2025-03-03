@@ -13,7 +13,7 @@ import ProductDetails from "./pages/ProductDetails";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuthContext";
 
 const queryClient = new QueryClient();
 

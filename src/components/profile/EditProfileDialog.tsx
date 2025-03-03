@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,14 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
 }) => {
   const [profileData, setProfileData] = useState<ProfileData>(initialProfileData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  
+  // Ensure profileData.dob is a valid Date object
+  useEffect(() => {
+    if (!(profileData.dob instanceof Date) || isNaN(profileData.dob.getTime())) {
+      setProfileData(prev => ({...prev, dob: new Date()}));
+    }
+  }, [profileData.dob]);
   
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -134,7 +142,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
               Date of Birth
             </Label>
             <div className="col-span-3">
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     id="dob"
@@ -145,7 +153,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
                       !profileData.dob && "text-muted-foreground"
                     )}
                   >
-                    {profileData.dob ? (
+                    {profileData.dob instanceof Date && !isNaN(profileData.dob.getTime()) ? (
                       format(profileData.dob, "PPP")
                     ) : (
                       <span>Select date</span>
@@ -156,7 +164,12 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
                   <Calendar
                     mode="single"
                     selected={profileData.dob}
-                    onSelect={(date) => date && handleProfileChange('dob', date)}
+                    onSelect={(date) => {
+                      if (date) {
+                        handleProfileChange('dob', date);
+                        setCalendarOpen(false);
+                      }
+                    }}
                     disabled={(date) => 
                       date > today || 
                       date < pastDate

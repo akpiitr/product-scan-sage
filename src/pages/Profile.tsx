@@ -6,7 +6,7 @@ import { useProducts } from '@/context/ProductContext';
 import Navigation from '@/components/Navigation';
 import SkinProfile from '@/components/SkinProfile';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, User, Bell, ShieldAlert } from 'lucide-react';
+import { Settings, LogOut, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
@@ -176,20 +176,6 @@ const Profile = () => {
                       <User size={16} className="mr-2" />
                       Edit Profile
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <Bell size={16} className="mr-2" />
-                      Notification Preferences
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-left hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <ShieldAlert size={16} className="mr-2" />
-                      Privacy Settings
-                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -232,6 +218,7 @@ const Profile = () => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
+                          id="dob"
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal",
@@ -250,7 +237,11 @@ const Profile = () => {
                         <Calendar
                           mode="single"
                           selected={profileData.dob}
-                          onSelect={(date) => handleProfileChange('dob', date || new Date())}
+                          onSelect={(date) => date && handleProfileChange('dob', date)}
+                          disabled={(date) => 
+                            date > new Date() || 
+                            date < new Date('1900-01-01')
+                          }
                           initialFocus
                         />
                       </PopoverContent>

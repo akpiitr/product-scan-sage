@@ -1,57 +1,94 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Apple, Mail, Phone, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 const Landing = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
+  
+  const { 
+    currentUser, 
+    signInWithEmail, 
+    signUpWithEmail, 
+    signInWithGoogle, 
+    sendPhoneOtp, 
+    verifyPhoneOtp,
+    isDemo
+  } = useAuth();
+  
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/home');
+    }
+  }, [currentUser, navigate]);
 
-  const handleGoogleLogin = () => {
-    // Mock Google authentication
-    toast.success('Google login successful!');
-    setTimeout(() => navigate('/home'), 1500);
-  };
-
-  const handleEmailLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Mock email authentication
-    if (email && password) {
-      toast.success('Email login successful!');
-      setTimeout(() => navigate('/home'), 1500);
-    } else {
-      toast.error('Please enter both email and password');
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
+      navigate('/home');
+    } catch (error) {
+      console.error("Google sign in failed", error);
     }
   };
 
-  const handleSendOtp = () => {
-    // Mock OTP sending
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isSignUp) {
+        await signUpWithEmail(email, password);
+      } else {
+        await signInWithEmail(email, password);
+      }
+      navigate('/home');
+    } catch (error) {
+      console.error("Email authentication failed", error);
+    }
+  };
+
+  const handleSendOtp = async () => {
     if (phoneNumber.length >= 10) {
-      toast.success(`OTP sent to ${phoneNumber}`);
-      setShowOtpInput(true);
-    } else {
-      toast.error('Please enter a valid phone number');
+      try {
+        await sendPhoneOtp(phoneNumber);
+        setShowOtpInput(true);
+      } catch (error) {
+        console.error("Failed to send OTP", error);
+      }
     }
   };
 
-  const handlePhoneLogin = (e: React.FormEvent) => {
+  const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock OTP verification
     if (otp.length === 6) {
-      toast.success('Phone verification successful!');
-      setTimeout(() => navigate('/home'), 1500);
-    } else {
-      toast.error('Please enter a valid OTP');
+      try {
+        await verifyPhoneOtp(otp);
+        navigate('/home');
+      } catch (error) {
+        console.error("OTP verification failed", error);
+      }
     }
+  };
+
+  // Demo mode banner
+  const DemoBanner = () => {
+    return isDemo ? (
+      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+        <p className="text-sm">
+          <strong>Demo Mode:</strong> Using mock authentication. Set up Firebase to enable real authentication.
+        </p>
+      </div>
+    ) : null;
   };
 
   return (
@@ -64,6 +101,8 @@ const Landing = () => {
             Discover the best skincare for you
           </p>
         </div>
+
+        <DemoBanner />
 
         {/* Login Options */}
         <Card className="border-none shadow-lg">
@@ -108,8 +147,10 @@ const Landing = () => {
                     variant="outline" 
                     className="w-full h-12 text-sm font-medium"
                     onClick={() => {
-                      toast.success('Apple login successful!');
-                      setTimeout(() => navigate('/home'), 1500);
+                      if (isDemo) {
+                        signInWithGoogle();
+                        navigate('/home');
+                      }
                     }}
                   >
                     <Apple className="mr-2 h-5 w-5" />
@@ -127,7 +168,7 @@ const Landing = () => {
                 </div>
 
                 {/* Email Form */}
-                <form onSubmit={handleEmailLogin} className="space-y-4">
+                <form onSubmit={handleEmailAuth} className="space-y-4">
                   <div className="space-y-2">
                     <Input
                       type="email"
@@ -135,6 +176,7 @@ const Landing = () => {
                       className="h-12"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      required
                     />
                     <Input
                       type="password"
@@ -142,10 +184,24 @@ const Landing = () => {
                       className="h-12"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
                   </div>
+                  
+                  <div className="flex justify-between text-sm">
+                    <label className="flex items-center gap-1.5">
+                      <input 
+                        type="checkbox" 
+                        className="h-4 w-4 rounded border-gray-300" 
+                        checked={isSignUp}
+                        onChange={() => setIsSignUp(!isSignUp)}
+                      />
+                      <span>Create a new account</span>
+                    </label>
+                  </div>
+                  
                   <Button type="submit" className="w-full h-12 bg-black hover:bg-gray-800">
-                    Continue with Email
+                    {isSignUp ? 'Sign Up' : 'Sign In'} with Email
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </form>
@@ -162,6 +218,7 @@ const Landing = () => {
                         className="h-12"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
                       />
                       <Button 
                         type="button" 
@@ -180,7 +237,8 @@ const Landing = () => {
                         className="h-12"
                         maxLength={6}
                         value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
+                        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                        required
                       />
                     )}
                   </div>

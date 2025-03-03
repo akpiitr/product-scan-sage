@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuthContext';
 import { useProducts } from '@/context/ProductContext';
@@ -7,11 +7,14 @@ import Navigation from '@/components/Navigation';
 import SkinProfile from '@/components/SkinProfile';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { currentUser, signOut } = useAuth();
   const { skinProfile } = useProducts();
+  const [showSettings, setShowSettings] = useState(false);
   
   const handleLogout = async () => {
     try {
@@ -20,6 +23,11 @@ const Profile = () => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const handleSettingsClick = () => {
+    setShowSettings(!showSettings);
+    toast.success("Settings panel toggled");
   };
 
   return (
@@ -61,11 +69,34 @@ const Profile = () => {
                 </p>
               </div>
               
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={handleSettingsClick}>
                 <Settings size={18} />
               </Button>
             </div>
           </div>
+          
+          {/* Settings Panel (conditionally rendered) */}
+          {showSettings && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Account Settings</h3>
+                  <Button variant="outline" className="w-full justify-start text-left">
+                    Edit Profile
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start text-left">
+                    Notification Preferences
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start text-left">
+                    Privacy Settings
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           {/* Skin Profile Section */}
           <SkinProfile />

@@ -45,7 +45,7 @@ const Scan = () => {
     };
   }, []);
   
-  const handleScan = async () => {
+  const handleScan = async (barcodeValue?: string) => {
     setIsScanning(true);
     setErrorMessage(null);
     
@@ -53,16 +53,27 @@ const Scan = () => {
       let product;
       
       if (scanMethod === 'barcode') {
-        // In a real app, you'd scan the barcode from the camera feed
-        // For this demo, we'll use a mock barcode
-        const mockBarcode = '123456789012';
-        product = await scanBarcode(mockBarcode);
+        // Use the detected barcode if available, otherwise use a mock value
+        const barcode = barcodeValue || '3017620422003'; // Default to a common product barcode (Nutella)
+        
+        console.log(`Processing barcode: ${barcode}`);
+        toast({
+          title: "Scanning Barcode",
+          description: `Barcode detected: ${barcode}`,
+        });
+        
+        product = await scanBarcode(barcode);
       } else {
         // Capture image from camera
         const imageData = captureImageFromVideo(videoRef.current, canvasRef.current);
         if (!imageData) {
           throw new Error('Failed to capture image');
         }
+        
+        toast({
+          title: "Processing Image",
+          description: "Analyzing product image...",
+        });
         
         // Scan the captured image
         product = await scanImage(imageData);
@@ -75,6 +86,11 @@ const Scan = () => {
       // Add product to context
       addProduct(product);
       setCurrentProduct(product);
+      
+      toast({
+        title: "Product Found",
+        description: `Found: ${product.name} by ${product.brand}`,
+      });
       
       // Navigate to product details
       navigate(`/product/${product.id}`);

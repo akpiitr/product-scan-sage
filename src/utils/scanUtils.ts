@@ -1,11 +1,11 @@
 
-// This is a mock implementation of scanning functionality
-// In a real app, you'd integrate with camera APIs and barcode/image recognition services
+// This file integrates barcode scanning functionality with product API
 
-import { Product } from '@/context/ProductContext';
+import { Product } from '@/models/product';
+import { fetchProductByBarcode } from '@/services/barcodeApiService';
 import { analyzeIngredients, generateSummary } from './ingredientAnalysis';
 
-// Mock database of products by barcode
+// Mock database for fallback when API fails
 const mockProductDatabase: Record<string, Omit<Product, 'analysis' | 'dateScanned' | 'favorite'>> = {
   '123456789012': {
     id: 'p1',
@@ -33,7 +33,7 @@ const mockProductDatabase: Record<string, Omit<Product, 'analysis' | 'dateScanne
   },
 };
 
-// Mock ingredient lists for products
+// Mock ingredient lists for fallback products
 const mockIngredients: Record<string, string[]> = {
   'p1': [
     'Water', 'Dimethicone', 'Glycerin', 'Hyaluronic Acid', 'Sodium Hydroxide',
@@ -50,49 +50,65 @@ const mockIngredients: Record<string, string[]> = {
 };
 
 export const scanBarcode = async (barcode: string): Promise<Product | null> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  try {
+    // First try to fetch product from API
+    const product = await fetchProductByBarcode(barcode);
+    if (product) {
+      return product;
+    }
+    
+    console.log('Product not found in API, falling back to mock database');
+    
+    // Fall back to mock database if API doesn't have the product
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-  // Check if barcode exists in our mock database
-  const productInfo = mockProductDatabase[barcode];
-  
-  if (!productInfo) {
-    return null;
+    // Check if barcode exists in our mock database
+    const productInfo = mockProductDatabase[barcode];
+    
+    if (!productInfo) {
+      return null;
+    }
+
+    // Get ingredients for this product
+    const ingredients = mockIngredients[productInfo.id] || [];
+    
+    // Analyze ingredients
+    const ingredientAnalysis = analyzeIngredients(ingredients);
+    
+    // Generate summary
+    const summary = generateSummary(ingredientAnalysis, ingredients);
+
+    // Create full product with analysis
+    const product: Product = {
+      ...productInfo,
+      analysis: {
+        overallRating: summary.overallRating,
+        safetyScore: summary.safetyScore,
+        matchScore: summary.matchScore,
+        summary: summary.summary,
+        ingredients: ingredientAnalysis,
+        goodFor: summary.goodFor,
+        warnings: summary.warnings,
+      },
+      dateScanned: new Date(),
+      favorite: false
+    };
+
+    return product;
+  } catch (error) {
+    console.error('Error in scanBarcode:', error);
+    throw new Error('Failed to scan barcode');
   }
-
-  // Get ingredients for this product
-  const ingredients = mockIngredients[productInfo.id] || [];
-  
-  // Analyze ingredients
-  const ingredientAnalysis = analyzeIngredients(ingredients);
-  
-  // Generate summary
-  const summary = generateSummary(ingredientAnalysis, ingredients);
-
-  // Create full product with analysis
-  const product: Product = {
-    ...productInfo,
-    analysis: {
-      overallRating: summary.overallRating,
-      safetyScore: summary.safetyScore,
-      matchScore: summary.matchScore,
-      summary: summary.summary,
-      ingredients: ingredientAnalysis,
-      goodFor: summary.goodFor,
-      warnings: summary.warnings,
-    },
-    dateScanned: new Date(),
-    favorite: false
-  };
-
-  return product;
 };
 
 export const scanImage = async (imageData: string): Promise<Product | null> => {
-  // In a real app, this would send the image to a computer vision API
-  // For this mock, we'll randomly select a product from our database
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // In a real app, this would send the image to a computer vision API to detect barcodes
+  // For now, we'll randomly select a product from our mock database
+  await new Promise(resolve => setTimeout(resolve, 1500));
   
+  // This would normally extract a barcode from the image
+  // For now, we'll just use a random mock barcode
   const allBarcodes = Object.keys(mockProductDatabase);
   const randomBarcode = allBarcodes[Math.floor(Math.random() * allBarcodes.length)];
   

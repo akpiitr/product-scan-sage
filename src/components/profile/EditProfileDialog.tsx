@@ -37,10 +37,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({
   currentUserName
 }) => {
   const [profileData, setProfileData] = useState<ProfileData>({
-    ...initialProfileData,
-    dob: initialProfileData.dob instanceof Date 
-      ? formatDateToString(initialProfileData.dob) 
-      : ''
+    ...initialProfileData
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   

@@ -28,7 +28,7 @@ const Profile = () => {
   
   const initialProfileData = {
     name: currentUser?.displayName || '',
-    dob: formatCurrentDate(),
+    dob: formatCurrentDate(), // This is now a string in MM/DD/YYYY format
     age: '',
     email: currentUser?.email || ''
   };

@@ -1,8 +1,10 @@
-# Welcome to your Lovable project
+# Welcome ProductSense.Ai
 
-## Project info
+## Product info
 
 **URL**: https://lovable.dev/projects/f87b6538-f6d2-467a-aa63-7a330d2c0503
+
+AI companion to analyze skin/scalp care products before buying. Compare product match score based on ingredients and your skin conditions, type of skin, typical environment around you, family history etc.. Found a product but need better recommendation? Our AI powered chat bot can help you find better alternatives. We used pubmed to find scientific information on ingredients and their effects on your skin/scalp. 
 
 ## How can I edit this code?
 

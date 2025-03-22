@@ -50,7 +50,7 @@ export const saveUserProducts = async (
   products: Product[]
 ): Promise<void> => {
   try {
-    // Delete existing products for user
+    // First, delete existing products for this user to avoid duplicates
     const { error: deleteError } = await supabase
       .from('user_products')
       .delete()

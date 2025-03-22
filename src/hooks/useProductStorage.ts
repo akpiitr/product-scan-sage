@@ -7,7 +7,6 @@ import {
   saveSkinProfile, 
   getSkinProfile 
 } from '@/services/databaseService';
-import { isInDemoMode } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 export const useProductStorage = (userId: string | null) => {
@@ -17,16 +16,16 @@ export const useProductStorage = (userId: string | null) => {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const { toast } = useToast();
 
-  // Load data from Firestore or localStorage based on authentication status
+  // Load data from Supabase or localStorage based on authentication status
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setIsInitialized(false); // Reset initialization flag when user changes
       
       try {
-        // If user is authenticated, load from Firestore
+        // If user is authenticated, load from Supabase
         if (userId) {
-          console.log(`Loading data for user ${userId} from Firestore`);
+          console.log(`Loading data for user ${userId} from Supabase`);
           
           // Load skin profile
           const userSkinProfile = await getSkinProfile(userId);
@@ -51,7 +50,7 @@ export const useProductStorage = (userId: string | null) => {
             console.log(`Loaded ${productsWithDates.length} products from database`);
           }
         }
-        // If user is not authenticated or in demo mode, load from localStorage
+        // If user is not authenticated, load from localStorage
         else {
           console.log('No user ID provided, loading from localStorage');
           const storedProducts = localStorage.getItem('products');
@@ -98,7 +97,7 @@ export const useProductStorage = (userId: string | null) => {
     loadData();
   }, [userId, toast]); // Only react to userId changes
 
-  // Save to Firestore when skin profile changes and user is authenticated
+  // Save to Supabase when skin profile changes and user is authenticated
   useEffect(() => {
     const saveToDatabase = async () => {
       if (userId && isInitialized && !isLoading) {
@@ -120,12 +119,12 @@ export const useProductStorage = (userId: string | null) => {
       }
     };
     
-    if (!isInDemoMode && userId && isInitialized) {
+    if (userId && isInitialized) {
       saveToDatabase();
     }
   }, [skinProfile, userId, isLoading, isInitialized, toast]);
 
-  // Save to Firestore when products change and user is authenticated
+  // Save to Supabase when products change and user is authenticated
   useEffect(() => {
     const saveToDatabase = async () => {
       if (userId && isInitialized && !isLoading && products.length > 0) {
@@ -138,7 +137,7 @@ export const useProductStorage = (userId: string | null) => {
       }
     };
     
-    if (!isInDemoMode && userId && isInitialized) {
+    if (userId && isInitialized) {
       saveToDatabase();
     }
   }, [products, userId, isLoading, isInitialized]);

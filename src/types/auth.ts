@@ -1,5 +1,5 @@
 
-import { User } from "firebase/auth";
+import { User } from "@supabase/supabase-js";
 
 export type AuthContextType = {
   currentUser: User | null;

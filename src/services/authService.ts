@@ -1,19 +1,7 @@
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut as firebaseSignOut,
-  signInWithPopup,
-  signInWithPhoneNumber,
-  PhoneAuthProvider,
-  RecaptchaVerifier
-} from "firebase/auth";
-import { auth, googleProvider, isInDemoMode } from "../lib/firebase";
-import { toast } from "sonner";
-import { createMockUser } from "../utils/mockAuth";
 
-// Keep track of recaptcha instance to avoid duplicate rendering
-let recaptchaVerifier: RecaptchaVerifier | null = null;
+import { toast } from "sonner";
+import { supabase, isInDemoMode } from "../lib/supabase";
+import { createMockUser } from "../utils/mockAuth";
 
 export const emailSignIn = async (email: string, password: string): Promise<void> => {
   if (isInDemoMode) {
@@ -22,7 +10,12 @@ export const emailSignIn = async (email: string, password: string): Promise<void
   }
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signInWithPassword({ 
+      email, 
+      password 
+    });
+    
+    if (error) throw error;
     toast.success("Successfully signed in!");
   } catch (error: any) {
     toast.error(error.message || "Failed to sign in");
@@ -37,8 +30,16 @@ export const emailSignUp = async (email: string, password: string): Promise<void
   }
 
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    toast.success("Account created successfully!");
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/home`
+      }
+    });
+    
+    if (error) throw error;
+    toast.success("Check your email to confirm your account!");
   } catch (error: any) {
     toast.error(error.message || "Failed to create account");
     throw error;
@@ -52,17 +53,17 @@ export const googleSignIn = async (): Promise<void> => {
   }
 
   try {
-    await signInWithPopup(auth, googleProvider);
-    toast.success("Google sign in successful!");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/home`
+      }
+    });
+    
+    if (error) throw error;
+    // Success message will be shown after redirect
   } catch (error: any) {
-    if (error.code === "auth/unauthorized-domain") {
-      toast.error(
-        "This domain is not authorized in Firebase. Please add it in the Firebase console under Authentication > Sign-in method > Authorized domains."
-      );
-      console.error("Unauthorized domain. Add this domain to your Firebase project:", window.location.hostname);
-    } else {
-      toast.error(error.message || "Failed to sign in with Google");
-    }
+    toast.error(error.message || "Failed to sign in with Google");
     throw error;
   }
 };
@@ -79,49 +80,19 @@ export const sendOtp = async (
   }
 
   try {
-    // Clear previous recaptcha to avoid errors
-    if (recaptchaVerifier) {
-      recaptchaVerifier.clear();
-      recaptchaVerifier = null;
-    }
-
-    // Clean up any existing recaptcha containers
-    const oldContainer = document.getElementById('recaptcha-container');
-    if (oldContainer) {
-      oldContainer.innerHTML = '';
-    }
-    
-    // Create a fresh recaptcha verifier instance
-    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: phoneNumber,
     });
     
-    // Ensure phone number has proper format
-    if (!phoneNumber.startsWith('+')) {
-      phoneNumber = `+${phoneNumber}`;
-    }
+    if (error) throw error;
     
-    console.log('Sending OTP to:', phoneNumber);
-    
-    const confirmationResult = await signInWithPhoneNumber(
-      auth, 
-      phoneNumber, 
-      recaptchaVerifier
-    );
-    
-    setVerificationId(confirmationResult.verificationId);
     setPhoneNumber(phoneNumber);
     toast.success(`OTP sent to ${phoneNumber}`);
+    // Supabase doesn't use verification IDs like Firebase, but we'll set a dummy value
+    setVerificationId('supabase-otp');
   } catch (error: any) {
     console.error("Failed to send OTP", error);
     toast.error(error.message || "Failed to send OTP");
-    
-    // Clean up on error
-    if (recaptchaVerifier) {
-      recaptchaVerifier.clear();
-      recaptchaVerifier = null;
-    }
-    
     throw error;
   }
 };
@@ -136,21 +107,21 @@ export const verifyOtp = async (
     return;
   }
 
-  if (!verificationId) {
-    toast.error("No OTP was sent. Please request an OTP first.");
+  if (!phoneNumber) {
+    toast.error("No phone number provided. Please request an OTP first.");
     return;
   }
 
   try {
-    const credential = PhoneAuthProvider.credential(verificationId, otp);
-    await signInWithPopup(auth, credential as any);
-    toast.success("Phone verification successful!");
+    const { error } = await supabase.auth.verifyOtp({
+      phone: phoneNumber,
+      token: otp,
+      type: 'sms'
+    });
     
-    // Clear the recaptcha after successful verification
-    if (recaptchaVerifier) {
-      recaptchaVerifier.clear();
-      recaptchaVerifier = null;
-    }
+    if (error) throw error;
+    
+    toast.success("Phone verification successful!");
   } catch (error: any) {
     toast.error(error.message || "Failed to verify OTP");
     throw error;
@@ -164,7 +135,8 @@ export const signOutUser = async (): Promise<void> => {
   }
 
   try {
-    await firebaseSignOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     toast.success("Signed out successfully!");
   } catch (error: any) {
     toast.error(error.message || "Failed to sign out");

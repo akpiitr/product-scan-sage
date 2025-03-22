@@ -1,32 +1,18 @@
 
-import { User } from "firebase/auth";
+import { User } from "@supabase/supabase-js";
 
 export const createMockUser = (): User => {
   return {
-    uid: "demo-user-id",
+    id: "demo-user-id",
     email: "demo@example.com",
-    displayName: "Demo User",
-    phoneNumber: "+1234567890",
-    emailVerified: true,
-    isAnonymous: false,
-    photoURL: null,
-    providerData: [],
-    metadata: {
-      creationTime: new Date().toISOString(),
-      lastSignInTime: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    app_metadata: {},
+    user_metadata: {
+      name: "Demo User",
+      phone: "+1234567890",
+      avatar_url: null
     },
-    tenantId: null,
-    delete: async () => {},
-    getIdToken: async () => "demo-token",
-    getIdTokenResult: async () => ({
-      token: "demo-token",
-      signInProvider: "demo",
-      expirationTime: new Date(Date.now() + 3600000).toISOString(),
-      issuedAtTime: new Date().toISOString(),
-      claims: {},
-      authTime: new Date().toISOString(),
-    }),
-    reload: async () => {},
-    toJSON: () => ({})
+    aud: "authenticated",
+    role: null
   } as User;
 };

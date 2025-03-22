@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { supabase } from '@/lib/supabase';
 import { ProductContextType } from './ProductContextTypes';
 import { SkinProfile, Product } from '@/models/product';
 import { useProductStorage } from '@/hooks/useProductStorage';
@@ -17,11 +16,21 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUserId(user?.uid || null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id || null);
     });
     
-    return () => unsubscribe();
+    // Check current session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id || null);
+    };
+    
+    checkSession();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Get storage operations

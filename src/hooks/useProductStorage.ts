@@ -7,7 +7,7 @@ import {
   saveSkinProfile, 
   getSkinProfile 
 } from '@/services/databaseService';
-import { isInDemoMode } from '@/lib/firebase';
+import { isInDemoMode } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 export const useProductStorage = (userId: string | null) => {

@@ -1,7 +1,7 @@
 
 import React, { createContext, useEffect, useState } from "react";
-import { User } from "firebase/auth";
-import { auth, isInDemoMode } from "../lib/firebase";
+import { User } from "@supabase/supabase-js";
+import { isInDemoMode, supabase } from "../lib/supabase";
 import { AuthContextType } from "../types/auth";
 import { createMockUser } from "../utils/mockAuth";
 import { 
@@ -34,12 +34,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setCurrentUser(user);
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
       setLoading(false);
     });
 
-    return unsubscribe;
+    // Initial session check
+    const checkCurrentSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setCurrentUser(session?.user || null);
+      setLoading(false);
+    };
+    checkCurrentSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -113,7 +124,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={value}>
       {children}
-      <div id="recaptcha-container"></div>
     </AuthContext.Provider>
   );
 };

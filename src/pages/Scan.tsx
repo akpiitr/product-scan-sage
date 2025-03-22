@@ -65,7 +65,11 @@ const Scan = () => {
         product = await scanBarcode(barcode);
       } else {
         // Capture image from camera
-        const imageData = captureImageFromVideo(videoRef.current, canvasRef.current);
+        if (!videoRef.current || !canvasRef.current) {
+          throw new Error('Camera view is not initialized');
+        }
+        
+        const imageData = await captureImageFromVideo(videoRef.current, canvasRef.current);
         if (!imageData) {
           throw new Error('Failed to capture image');
         }

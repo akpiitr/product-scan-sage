@@ -22,6 +22,8 @@ interface CameraViewProps {
   scanMethod: 'barcode' | 'image';
   onCapture: (barcodeValue?: string) => void;
   streamRef: React.MutableRefObject<MediaStream | null>;
+  videoRef: React.MutableRefObject<HTMLVideoElement | null>;
+  canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
 }
 
 const CameraView: React.FC<CameraViewProps> = ({
@@ -29,9 +31,9 @@ const CameraView: React.FC<CameraViewProps> = ({
   scanMethod,
   onCapture,
   streamRef,
+  videoRef,
+  canvasRef
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scanningActive, setScanningActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isBarcodeSupported, setIsBarcodeSupported] = useState<boolean | null>(null);
@@ -94,7 +96,7 @@ const CameraView: React.FC<CameraViewProps> = ({
         videoRef.current.srcObject = null;
       }
     };
-  }, [streamRef]);
+  }, [streamRef, videoRef]);
   
   // Start continuous barcode scanning if supported
   useEffect(() => {
@@ -147,7 +149,7 @@ const CameraView: React.FC<CameraViewProps> = ({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [scanMethod, isBarcodeSupported, isScanning, onCapture]);
+  }, [scanMethod, isBarcodeSupported, isScanning, onCapture, videoRef]);
   
   // Handle capture button click
   const handleCaptureClick = () => {

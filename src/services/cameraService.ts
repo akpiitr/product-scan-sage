@@ -1,3 +1,4 @@
+
 export const startCamera = async (videoElement: HTMLVideoElement): Promise<MediaStream | null> => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -95,4 +96,3 @@ export const stopCameraStream = (stream: MediaStream | null): void => {
     console.error("❌ Error: No active camera stream found.");
   }
 };
-

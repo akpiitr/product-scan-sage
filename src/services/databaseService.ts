@@ -113,9 +113,18 @@ export const saveSkinProfile = async (
   skinProfile: SkinProfile
 ): Promise<void> => {
   try {
+    // First, delete existing skin profiles for this user to avoid duplicates
+    const { error: deleteError } = await supabase
+      .from('skin_profiles')
+      .delete()
+      .eq('user_id', userId);
+
+    if (deleteError) throw deleteError;
+
+    // Insert new skin profile
     const { error } = await supabase
       .from('skin_profiles')
-      .upsert({
+      .insert({
         user_id: userId,
         profile_data: skinProfile,
         updated_at: new Date().toISOString()
@@ -134,14 +143,21 @@ export const getSkinProfile = async (
   userId: string
 ): Promise<SkinProfile | null> => {
   try {
+    // Use order and limit to make sure we only get the most recent skin profile
     const { data, error } = await supabase
       .from('skin_profiles')
       .select('profile_data')
       .eq('user_id', userId)
-      .single();
+      .order('updated_at', { ascending: false })
+      .limit(1);
 
     if (error) throw error;
-    return data?.profile_data || null;
+    
+    if (!data || data.length === 0) {
+      return null;
+    }
+    
+    return data[0].profile_data;
   } catch (error: any) {
     console.error("Error fetching skin profile:", error);
     return null;

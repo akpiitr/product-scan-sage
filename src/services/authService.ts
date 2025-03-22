@@ -1,7 +1,5 @@
-
 import { toast } from "sonner";
 import { supabase } from "../lib/supabase";
-import { createMockUser } from "../utils/mockAuth";
 
 export const emailSignIn = async (email: string, password: string): Promise<void> => {
   if (false) { // Removed demo mode

@@ -1,10 +1,10 @@
 
 import { toast } from "sonner";
-import { supabase, isInDemoMode } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 import { createMockUser } from "../utils/mockAuth";
 
 export const emailSignIn = async (email: string, password: string): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success("Demo login successful!");
     return;
   }
@@ -24,7 +24,7 @@ export const emailSignIn = async (email: string, password: string): Promise<void
 };
 
 export const emailSignUp = async (email: string, password: string): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success("Demo signup successful!");
     return;
   }
@@ -47,7 +47,7 @@ export const emailSignUp = async (email: string, password: string): Promise<void
 };
 
 export const googleSignIn = async (): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success("Demo Google login successful!");
     return;
   }
@@ -73,7 +73,7 @@ export const sendOtp = async (
   setVerificationId: (id: string) => void,
   setPhoneNumber: (phone: string) => void
 ): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success(`OTP sent to ${phoneNumber}`);
     setPhoneNumber(phoneNumber);
     return;
@@ -102,7 +102,7 @@ export const verifyOtp = async (
   verificationId: string | null,
   phoneNumber: string | null
 ): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success("Phone verification successful!");
     return;
   }
@@ -129,7 +129,7 @@ export const verifyOtp = async (
 };
 
 export const signOutUser = async (): Promise<void> => {
-  if (isInDemoMode) {
+  if (false) { // Removed demo mode
     toast.success("Signed out successfully!");
     return;
   }

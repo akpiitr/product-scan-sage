@@ -1,26 +1,13 @@
 
 import { toast } from "sonner";
-import { supabase, isInDemoMode } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 import { Product, SkinProfile } from "@/context/ProductContext";
-
-// Mock in-memory database for demo mode
-const mockDatabase: Record<string, Record<string, any>> = {
-  users: {},
-  products: {},
-  skinProfiles: {}
-};
 
 // User profile functions
 export const saveUserProfile = async (
   userId: string, 
   profileData: Record<string, any>
 ): Promise<void> => {
-  if (isInDemoMode) {
-    mockDatabase.users[userId] = profileData;
-    console.log('[DEMO] Saved user profile:', profileData);
-    return;
-  }
-
   try {
     const { error } = await supabase
       .from('profiles')
@@ -42,10 +29,6 @@ export const saveUserProfile = async (
 export const getUserProfile = async (
   userId: string
 ): Promise<Record<string, any> | null> => {
-  if (isInDemoMode) {
-    return mockDatabase.users[userId] || null;
-  }
-
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -66,12 +49,6 @@ export const saveUserProducts = async (
   userId: string, 
   products: Product[]
 ): Promise<void> => {
-  if (isInDemoMode) {
-    mockDatabase.products[userId] = products;
-    console.log('[DEMO] Saved products:', products.length);
-    return;
-  }
-
   try {
     // Delete existing products for user
     const { error: deleteError } = await supabase
@@ -105,10 +82,6 @@ export const saveUserProducts = async (
 export const getUserProducts = async (
   userId: string
 ): Promise<{ products: Product[] } | null> => {
-  if (isInDemoMode) {
-    return { products: mockDatabase.products[userId] || [] };
-  }
-
   try {
     const { data, error } = await supabase
       .from('user_products')
@@ -139,12 +112,6 @@ export const saveSkinProfile = async (
   userId: string, 
   skinProfile: SkinProfile
 ): Promise<void> => {
-  if (isInDemoMode) {
-    mockDatabase.skinProfiles[userId] = skinProfile;
-    console.log('[DEMO] Saved skin profile');
-    return;
-  }
-
   try {
     const { error } = await supabase
       .from('skin_profiles')
@@ -166,10 +133,6 @@ export const saveSkinProfile = async (
 export const getSkinProfile = async (
   userId: string
 ): Promise<SkinProfile | null> => {
-  if (isInDemoMode) {
-    return mockDatabase.skinProfiles[userId] || null;
-  }
-
   try {
     const { data, error } = await supabase
       .from('skin_profiles')

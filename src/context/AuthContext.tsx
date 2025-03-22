@@ -1,9 +1,8 @@
 
 import React, { createContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { isInDemoMode, supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 import { AuthContextType } from "../types/auth";
-import { createMockUser } from "../utils/mockAuth";
 import { 
   emailSignIn, 
   emailSignUp, 
@@ -21,19 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [phoneNumberForVerification, setPhoneNumberForVerification] = useState<string | null>(null);
   
-  const mockAuth = () => {
-    if (isInDemoMode) {
-      setCurrentUser(createMockUser());
-    }
-  };
-
   useEffect(() => {
-    if (isInDemoMode) {
-      mockAuth();
-      setLoading(false);
-      return;
-    }
-
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user || null);
@@ -57,7 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await emailSignIn(email, password);
-      if (isInDemoMode) mockAuth();
     } finally {
       setLoading(false);
     }
@@ -67,7 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await emailSignUp(email, password);
-      if (isInDemoMode) mockAuth();
     } finally {
       setLoading(false);
     }
@@ -77,7 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await googleSignIn();
-      if (isInDemoMode) mockAuth();
     } finally {
       setLoading(false);
     }
@@ -96,7 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await verifyOtp(otp, verificationId, phoneNumberForVerification);
-      if (isInDemoMode) mockAuth();
     } finally {
       setLoading(false);
     }
@@ -104,9 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await signOutUser();
-    if (isInDemoMode) {
-      setCurrentUser(null);
-    }
   };
 
   const value = {
@@ -118,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     sendPhoneOtp,
     verifyPhoneOtp,
     signOut,
-    isDemo: isInDemoMode
+    isDemo: false // No longer in demo mode
   };
 
   return (

@@ -35,9 +35,9 @@ const Profile = () => {
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (currentUser?.uid) {
+      if (currentUser?.id) {
         try {
-          const profileData = await getUserProfile(currentUser.uid);
+          const profileData = await getUserProfile(currentUser.id);
           setUserProfile(profileData);
           
           // Check if this is a first-time user (no profile exists)
@@ -58,7 +58,7 @@ const Profile = () => {
   }, [currentUser]);
   
   const initialProfileData = {
-    name: userProfile?.name || currentUser?.displayName || '',
+    name: userProfile?.name || currentUser?.user_metadata?.name || '',
     dob: userProfile?.dob || formatCurrentDate(), // This is now a string in MM/DD/YYYY format
     age: userProfile?.age || '',
     email: userProfile?.email || currentUser?.email || ''
@@ -79,9 +79,9 @@ const Profile = () => {
   
   const handleProfileSaved = async () => {
     // Refetch the profile data after saving
-    if (currentUser?.uid) {
+    if (currentUser?.id) {
       try {
-        const profileData = await getUserProfile(currentUser.uid);
+        const profileData = await getUserProfile(currentUser.id);
         setUserProfile(profileData);
         setIsFirstTimeUser(false);
       } catch (error) {
@@ -135,8 +135,8 @@ const Profile = () => {
             onOpenChange={setShowEditProfile}
             initialProfileData={initialProfileData}
             currentUserEmail={currentUser?.email}
-            currentUserName={currentUser?.displayName}
-            userId={currentUser?.uid}
+            currentUserName={currentUser?.user_metadata?.name}
+            userId={currentUser?.id}
             onProfileSaved={handleProfileSaved}
           />
           

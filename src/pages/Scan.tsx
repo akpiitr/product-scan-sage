@@ -133,6 +133,8 @@ const Scan = () => {
         scanMethod={scanMethod}
         onCapture={handleScan}
         streamRef={streamRef}
+        videoRef={videoRef}
+        canvasRef={canvasRef}
       />
     );
   };

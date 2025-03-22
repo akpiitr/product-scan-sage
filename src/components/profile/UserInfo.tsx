@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User } from 'firebase/auth';
+import { User } from '@supabase/supabase-js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Edit2 } from 'lucide-react';
@@ -28,8 +28,9 @@ const UserInfo: React.FC<UserInfoProps> = ({
       .slice(0, 2);
   };
 
-  const displayName = userProfile?.name || currentUser?.displayName || 'User';
+  const displayName = userProfile?.name || currentUser?.user_metadata?.name || 'User';
   const email = userProfile?.email || currentUser?.email || '';
+  const photoURL = currentUser?.user_metadata?.avatar_url;
   const initials = getInitials(displayName);
   
   return (
@@ -49,7 +50,7 @@ const UserInfo: React.FC<UserInfoProps> = ({
       
       <div className="flex items-center space-x-4 mb-4">
         <Avatar className="h-14 w-14">
-          <AvatarImage src={currentUser?.photoURL || undefined} alt={displayName} />
+          <AvatarImage src={photoURL || undefined} alt={displayName} />
           <AvatarFallback className="text-lg bg-brand-accent text-white">
             {initials}
           </AvatarFallback>

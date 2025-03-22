@@ -1,21 +1,6 @@
 
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  QueryConstraint,
-  DocumentData
-} from "firebase/firestore";
-import { db, isInDemoMode } from "../lib/firebase";
 import { toast } from "sonner";
+import { supabase, isInDemoMode } from "../lib/supabase";
 import { Product, SkinProfile } from "@/context/ProductContext";
 
 // Mock in-memory database for demo mode
@@ -25,193 +10,177 @@ const mockDatabase: Record<string, Record<string, any>> = {
   skinProfiles: {}
 };
 
-// Generic function to add a document to a collection
-export const addDocument = async <T extends DocumentData>(
-  collectionName: string, 
-  documentId: string, 
-  data: T
-): Promise<void> => {
-  if (isInDemoMode) {
-    if (!mockDatabase[collectionName]) {
-      mockDatabase[collectionName] = {};
-    }
-    mockDatabase[collectionName][documentId] = { ...data, id: documentId };
-    console.log(`[DEMO] Added document to ${collectionName}:`, documentId, data);
-    return;
-  }
-
-  try {
-    console.log(`Adding document to ${collectionName} with ID ${documentId}:`, data);
-    const docRef = doc(db, collectionName, documentId);
-    await setDoc(docRef, data);
-    console.log(`Successfully added document to ${collectionName} with ID ${documentId}`);
-  } catch (error: any) {
-    console.error(`Error adding document to ${collectionName}:`, error);
-    toast.error(error.message || `Failed to save to ${collectionName}`);
-    throw error;
-  }
-};
-
-// Generic function to get a document from a collection
-export const getDocument = async <T>(
-  collectionName: string, 
-  documentId: string
-): Promise<T | null> => {
-  if (isInDemoMode) {
-    const result = mockDatabase[collectionName]?.[documentId] || null;
-    console.log(`[DEMO] Retrieved document from ${collectionName}:`, documentId, result);
-    return result;
-  }
-
-  try {
-    console.log(`Getting document from ${collectionName} with ID ${documentId}`);
-    const docRef = doc(db, collectionName, documentId);
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      const data = { id: docSnap.id, ...docSnap.data() } as T;
-      console.log(`Successfully retrieved document from ${collectionName}:`, data);
-      return data;
-    } else {
-      console.log(`No document found in ${collectionName} with ID ${documentId}`);
-      return null;
-    }
-  } catch (error: any) {
-    console.error(`Error getting document from ${collectionName}:`, error);
-    toast.error(error.message || `Failed to retrieve from ${collectionName}`);
-    throw error;
-  }
-};
-
-// Generic function to update a document in a collection
-export const updateDocument = async <T extends Partial<DocumentData>>(
-  collectionName: string, 
-  documentId: string, 
-  data: T
-): Promise<void> => {
-  if (isInDemoMode) {
-    if (mockDatabase[collectionName]?.[documentId]) {
-      mockDatabase[collectionName][documentId] = { 
-        ...mockDatabase[collectionName][documentId], 
-        ...data 
-      };
-      console.log(`[DEMO] Updated document in ${collectionName}:`, documentId, data);
-    }
-    return;
-  }
-
-  try {
-    const docRef = doc(db, collectionName, documentId);
-    await updateDoc(docRef, data);
-  } catch (error: any) {
-    console.error(`Error updating document in ${collectionName}:`, error);
-    toast.error(error.message || `Failed to update in ${collectionName}`);
-    throw error;
-  }
-};
-
-// Generic function to delete a document from a collection
-export const deleteDocument = async (
-  collectionName: string, 
-  documentId: string
-): Promise<void> => {
-  if (isInDemoMode) {
-    if (mockDatabase[collectionName]?.[documentId]) {
-      delete mockDatabase[collectionName][documentId];
-      console.log(`[DEMO] Deleted document from ${collectionName}:`, documentId);
-    }
-    return;
-  }
-
-  try {
-    const docRef = doc(db, collectionName, documentId);
-    await deleteDoc(docRef);
-  } catch (error: any) {
-    console.error(`Error deleting document from ${collectionName}:`, error);
-    toast.error(error.message || `Failed to delete from ${collectionName}`);
-    throw error;
-  }
-};
-
-// Generic function to query documents from a collection
-export const queryDocuments = async <T>(
-  collectionName: string,
-  constraints: QueryConstraint[] = []
-): Promise<T[]> => {
-  if (isInDemoMode) {
-    const results = Object.values(mockDatabase[collectionName] || {});
-    console.log(`[DEMO] Queried documents from ${collectionName}:`, results);
-    return results as T[];
-  }
-
-  try {
-    const collectionRef = collection(db, collectionName);
-    const q = query(collectionRef, ...constraints);
-    const querySnapshot = await getDocs(q);
-    
-    const results: T[] = [];
-    querySnapshot.forEach((doc) => {
-      results.push({ id: doc.id, ...doc.data() } as T);
-    });
-    
-    return results;
-  } catch (error: any) {
-    console.error(`Error querying documents from ${collectionName}:`, error);
-    toast.error(error.message || `Failed to query from ${collectionName}`);
-    throw error;
-  }
-};
-
-// User-specific functions
-
+// User profile functions
 export const saveUserProfile = async (
   userId: string, 
   profileData: Record<string, any>
 ): Promise<void> => {
-  return addDocument('users', userId, {
-    ...profileData,
-    updatedAt: new Date().toISOString()
-  });
+  if (isInDemoMode) {
+    mockDatabase.users[userId] = profileData;
+    console.log('[DEMO] Saved user profile:', profileData);
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ 
+        id: userId,
+        ...profileData,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+    toast.success("Profile updated successfully");
+  } catch (error: any) {
+    console.error("Error saving profile:", error);
+    toast.error(error.message || "Failed to save profile");
+    throw error;
+  }
 };
 
 export const getUserProfile = async (
   userId: string
 ): Promise<Record<string, any> | null> => {
-  return getDocument('users', userId);
+  if (isInDemoMode) {
+    return mockDatabase.users[userId] || null;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error: any) {
+    console.error("Error fetching profile:", error);
+    return null;
+  }
 };
 
 // Product-specific functions
-
 export const saveUserProducts = async (
   userId: string, 
   products: Product[]
 ): Promise<void> => {
-  return addDocument('userProducts', userId, {
-    products,
-    updatedAt: new Date().toISOString()
-  });
+  if (isInDemoMode) {
+    mockDatabase.products[userId] = products;
+    console.log('[DEMO] Saved products:', products.length);
+    return;
+  }
+
+  try {
+    // Delete existing products for user
+    const { error: deleteError } = await supabase
+      .from('user_products')
+      .delete()
+      .eq('user_id', userId);
+
+    if (deleteError) throw deleteError;
+
+    // Insert new products
+    if (products.length > 0) {
+      const productsToInsert = products.map(product => ({
+        user_id: userId,
+        product_data: product,
+        date_scanned: product.dateScanned,
+        is_favorite: product.favorite || false
+      }));
+
+      const { error } = await supabase
+        .from('user_products')
+        .insert(productsToInsert);
+
+      if (error) throw error;
+    }
+  } catch (error: any) {
+    console.error("Error saving products:", error);
+    // Don't show toast for background sync
+  }
 };
 
 export const getUserProducts = async (
   userId: string
 ): Promise<{ products: Product[] } | null> => {
-  return getDocument('userProducts', userId);
+  if (isInDemoMode) {
+    return { products: mockDatabase.products[userId] || [] };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_products')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date_scanned', { ascending: false });
+
+    if (error) throw error;
+    
+    if (!data) return { products: [] };
+    
+    // Convert from database format to app format
+    const products = data.map(item => ({
+      ...item.product_data,
+      favorite: item.is_favorite,
+      dateScanned: new Date(item.date_scanned)
+    }));
+    
+    return { products };
+  } catch (error: any) {
+    console.error("Error fetching products:", error);
+    return { products: [] };
+  }
 };
 
 // Skin profile functions
-
 export const saveSkinProfile = async (
   userId: string, 
   skinProfile: SkinProfile
 ): Promise<void> => {
-  return addDocument('skinProfiles', userId, {
-    ...skinProfile,
-    updatedAt: new Date().toISOString()
-  });
+  if (isInDemoMode) {
+    mockDatabase.skinProfiles[userId] = skinProfile;
+    console.log('[DEMO] Saved skin profile');
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('skin_profiles')
+      .upsert({
+        user_id: userId,
+        profile_data: skinProfile,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+    // Success is handled by the caller
+  } catch (error: any) {
+    console.error("Error saving skin profile:", error);
+    toast.error(error.message || "Failed to save skin profile");
+    throw error;
+  }
 };
 
 export const getSkinProfile = async (
   userId: string
 ): Promise<SkinProfile | null> => {
-  return getDocument('skinProfiles', userId);
+  if (isInDemoMode) {
+    return mockDatabase.skinProfiles[userId] || null;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('skin_profiles')
+      .select('profile_data')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) throw error;
+    return data?.profile_data || null;
+  } catch (error: any) {
+    console.error("Error fetching skin profile:", error);
+    return null;
+  }
 };
